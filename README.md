@@ -240,7 +240,7 @@ The `response` handler does NOT evaluate any of the response data. It merely for
 Alamofire.request("https://httpbin.org/get").response { response in
     print("Request: \(response.request)")
     print("Response: \(response.response)")
-    print("Error: \(response.data)")
+    print("Error: \(response.error)")
 
     if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
     	print("Data: \(utf8Text)")
@@ -360,7 +360,7 @@ Alamofire.request("https://httpbin.org/get").validate().responseJSON { response 
 
 Response Caching is handled on the system framework level by [`URLCache`](https://developer.apple.com/reference/foundation/urlcache). It provides a composite in-memory and on-disk cache and lets you manipulate the sizes of both the in-memory and on-disk portions.
 
-> By default, Alamofire leverages the shared `URLCache`. In order to customize it, see the [Session Manager Configurations](#session-manager-configurations) section.
+> By default, Alamofire leverages the shared `URLCache`. In order to customize it, see the [Session Manager Configurations](#session-manager) section.
 
 ### HTTP Methods
 
@@ -520,7 +520,7 @@ Alamofire.request("https://httpbin.org/headers", headers: headers).responseJSON 
 }
 ```
 
-> For HTTP headers that do not change, it is recommended to set them on the `URLSessionConfiguration` so they are automatically applied to any `URLSessionTask` created by the underlying `URLSession`. For more information, see the [Session Manager Configurations](#session-manager-configurations) section.
+> For HTTP headers that do not change, it is recommended to set them on the `URLSessionConfiguration` so they are automatically applied to any `URLSessionTask` created by the underlying `URLSession`. For more information, see the [Session Manager Configurations](#session-manager) section.
 
 The default Alamofire `SessionManager` provides a default set of headers for every `Request`. These include:
 
@@ -603,7 +603,7 @@ Alamofire.download("https://httpbin.org/image/png").responseData { response in
 }
 ```
 
-> The `Alamofire.download` APIs should also be used if you need to download data while your app is in the background. For more information, please see the [Session Manager Configurations](#session-manager-configurations) section.
+> The `Alamofire.download` APIs should also be used if you need to download data while your app is in the background. For more information, please see the [Session Manager Configurations](#session-manager) section.
 
 #### Download File Destination
 
@@ -672,6 +672,8 @@ Alamofire.download("https://httpbin.org/image/png")
 
 If a `DownloadRequest` is cancelled or interrupted, the underlying URL session may generate resume data for the active `DownloadRequest`. If this happens, the resume data can be re-used to restart the `DownloadRequest` where it left off. The resume data can be accessed through the download response, then reused when trying to restart the request.
 
+> **IMPORTANT:** On the latest release of all the Apple platforms (iOS 10, macOS 10.12, tvOS 10, watchOS 3), `resumeData` is broken on background URL session configurations. There's an underlying bug in the `resumeData` generation logic where the data is written incorrectly and will always fail to resume the download. For more information about the bug and possible workarounds, please see this Stack Overflow [post](http://stackoverflow.com/a/39347461/1342462).
+
 ```swift
 class ImageRequestor {
 	private var resumeData: Data?
@@ -711,7 +713,7 @@ class ImageRequestor {
 
 When sending relatively small amounts of data to a server using JSON or URL encoded parameters, the `Alamofire.request` APIs are usually sufficient. If you need to send much larger amounts of data from a file URL or an `InputStream`, then the `Alamofire.upload` APIs are what you want to use.
 
-> The `Alamofire.upload` APIs should also be used if you need to upload data while your app is in the background. For more information, please see the [Session Manager Configurations](#session-manager-configurations) section.
+> The `Alamofire.upload` APIs should also be used if you need to upload data while your app is in the background. For more information, please see the [Session Manager Configurations](#session-manager) section.
 
 #### Uploading Data
 
