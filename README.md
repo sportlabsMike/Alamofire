@@ -55,8 +55,8 @@ In order to keep Alamofire focused specifically on core networking implementatio
 
 ## Requirements
 
-- iOS 9.0+ / macOS 10.11+ / tvOS 9.0+ / watchOS 2.0+
-- Xcode 8.0+
+- iOS 8.0+ / macOS 10.10+ / tvOS 9.0+ / watchOS 2.0+
+- Xcode 8.1+
 - Swift 3.0+
 
 ## Migration Guides
@@ -130,13 +130,13 @@ If you prefer not to use either of the aforementioned dependency managers, you c
 
 - Open up Terminal, `cd` into your top-level project directory, and run the following command "if" your project is not initialized as a git repository:
 
-```bash
+  ```bash
 $ git init
 ```
 
 - Add Alamofire as a git [submodule](http://git-scm.com/docs/git-submodule) by running the following command:
 
-```bash
+  ```bash
 $ git submodule add https://github.com/Alamofire/Alamofire.git
 ```
 
@@ -158,7 +158,7 @@ $ git submodule add https://github.com/Alamofire/Alamofire.git
 
 - And that's it!
 
-> The `Alamofire.framework` is automagically added as a target dependency, linked framework and embedded framework in a copy files build phase which is all you need to build on the simulator and a device.
+  > The `Alamofire.framework` is automagically added as a target dependency, linked framework and embedded framework in a copy files build phase which is all you need to build on the simulator and a device.
 
 ---
 
@@ -199,7 +199,7 @@ Alamofire contains five different response handlers by default including:
 // Response Handler - Unserialized Response
 func response(
     queue: DispatchQueue?,
-    completionHandler: @escaping (DefaultDownloadResponse) -> Void)
+    completionHandler: @escaping (DefaultDataResponse) -> Void)
     -> Self
 
 // Response Data Handler - Serialized into Data
@@ -528,7 +528,7 @@ The default Alamofire `SessionManager` provides a default set of headers for eve
 - `Accept-Language`, which defaults to up to the top 6 preferred languages on the system, formatted like `en;q=1.0`, per [RFC 7231 §5.3.5](https://tools.ietf.org/html/rfc7231#section-5.3.5).
 - `User-Agent`, which contains versioning information about the current app. For example: `iOS Example/1.0 (com.alamofire.iOS-Example; build:1; iOS 10.0.0) Alamofire/4.0.0`, per [RFC 7231 §5.5.3](https://tools.ietf.org/html/rfc7231#section-5.5.3).
 
-If you need to customize these headers, a custom `URLSessionManagerConfiguration` should be created, the `defaultHTTPHeaders` property updated and the configuration applied to a new `SessionManager` instance.
+If you need to customize these headers, a custom `URLSessionConfiguration` should be created, the `defaultHTTPHeaders` property updated and the configuration applied to a new `SessionManager` instance.
 
 ### Authentication
 
@@ -623,7 +623,7 @@ let destination: DownloadRequest.DownloadFileDestination = { _, _ in
 Alamofire.download(urlString, to: destination).response { response in
     print(response)
 
-	if response.result.isSuccess, let imagePath = response.destinationURL?.path {
+	if response.error == nil, let imagePath = response.destinationURL?.path {
 	    let image = UIImage(contentsOfFile: imagePath)
 	}
 }
@@ -1291,8 +1291,12 @@ class OAuth2Handler: RequestAdapter, RequestRetrier {
             .responseJSON { [weak self] response in
                 guard let strongSelf = self else { return }
 
-                if let json = response.result.value as? [String: String] {
-                    completion(true, json["access_token"], json["refresh_token"])
+                if 
+                    let json = response.result.value as? [String: Any], 
+                    let accessToken = json["access_token"] as? String, 
+                    let refreshToken = json["refresh_token"] as? String 
+                {
+                    completion(true, accessToken, refreshToken)
                 } else {
                     completion(false, nil, nil)
                 }
